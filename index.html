@@ -35,3 +35,185 @@ const SHORT_TON_TO_METRIC_TON = 0.90718474;
 ====================== */
 
 function SimpleCalculator() {
+  const [display, setDisplay] = useState("0");
+  const [stored, setStored] = useState(null);
+
+  const inputNumber = (n) => {
+    setDisplay(display === "0" ? String(n) : display + n);
+  };
+
+  const decimal = () => {
+    if (!display.includes(".")) setDisplay(display + ".");
+  };
+
+  const clear = () => {
+    setDisplay("0");
+    setStored(null);
+  };
+
+  const operate = (op) => {
+    setStored({ value: Number(display), op });
+    setDisplay("0");
+  };
+
+  const equals = () => {
+    if (!stored) return;
+    const a = stored.value;
+    const b = Number(display);
+    let r = a;
+
+    if (stored.op === "+") r = a + b;
+    if (stored.op === "−") r = a - b;
+    if (stored.op === "×") r = a * b;
+    if (stored.op === "÷") r = b === 0 ? NaN : a / b;
+
+    setDisplay(String(r));
+    setStored(null);
+  };
+
+  return (
+    <div className="mt-8 border rounded-xl p-4 bg-white shadow">
+      <h2 className="text-lg font-semibold mb-2">Simple Calculator</h2>
+
+      <div className="border rounded p-2 mb-2 text-right font-mono text-lg">
+        {display}
+      </div>
+
+      <div className="grid grid-cols-4 gap-2">
+        {[7, 8, 9].map(n => (
+          <button key={n} onClick={() => inputNumber(n)} className="border p-2 rounded">{n}</button>
+        ))}
+        <button onClick={() => operate("÷")} className="border p-2 rounded">÷</button>
+
+        {[4, 5, 6].map(n => (
+          <button key={n} onClick={() => inputNumber(n)} className="border p-2 rounded">{n}</button>
+        ))}
+        <button onClick={() => operate("×")} className="border p-2 rounded">×</button>
+
+        {[1, 2, 3].map(n => (
+          <button key={n} onClick={() => inputNumber(n)} className="border p-2 rounded">{n}</button>
+        ))}
+        <button onClick={() => operate("−")} className="border p-2 rounded">−</button>
+
+        <button onClick={() => inputNumber(0)} className="border p-2 rounded col-span-2">0</button>
+        <button onClick={decimal} className="border p-2 rounded">.</button>
+        <button onClick={() => operate("+")} className="border p-2 rounded">+</button>
+
+        <button onClick={clear} className="border p-2 rounded col-span-2">C</button>
+        <button onClick={equals} className="border p-2 rounded col-span-2">=</button>
+      </div>
+    </div>
+  );
+}
+
+/* ======================
+   Unit Converter
+====================== */
+
+export default function UnitConverter() {
+  const [mode, setMode] = useState("electric");
+  const [value, setValue] = useState(1);
+  const [from, setFrom] = useState("kWh");
+  const [to, setTo] = useState("MWh");
+  const [material, setMaterial] = useState("asphalt");
+  const [densities, setDensities] = useState(DEFAULT_DENSITIES_SHORT_TON_PER_CY);
+  const [tonType, setTonType] = useState("short");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("unit-converter-project");
+    if (saved) {
+      try {
+        const s = JSON.parse(saved);
+        setMode(s.mode || "electric");
+        setValue(Number.isFinite(s.value) ? s.value : 1);
+        setFrom(s.from || "kWh");
+        setTo(s.to || "MWh");
+        setMaterial(s.material || "asphalt");
+        setDensities(s.densities || DEFAULT_DENSITIES_SHORT_TON_PER_CY);
+        setTonType(s.tonType || "short");
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "unit-converter-project",
+      JSON.stringify({ mode, value, from, to, material, densities, tonType })
+    );
+  }, [mode, value, from, to, material, densities, tonType]);
+
+  const result = useMemo(() => {
+    if (!Number.isFinite(value)) return 0;
+
+    if (mode === "electric")
+      return (value * ELECTRIC_ENERGY[from]) / ELECTRIC_ENERGY[to];
+
+    if (mode === "gas")
+      return (value * GAS_BTUS[from]) / GAS_BTUS[to];
+
+    if (mode === "gallons") {
+      if (from === "gallons") return value / GALLONS_PER_ACRE_FOOT;
+      return value * GALLONS_PER_ACRE_FOOT;
+    }
+
+    if (mode === "cytons") {
+      const d = densities[material];
+      const f = tonType === "metric" ? SHORT_TON_TO_METRIC_TON : 1;
+      if (from === "CY") return value * d * f;
+      return value / (d * f);
+    }
+
+    return value;
+  }, [mode, value, from, to, material, densities, tonType]);
+
+  return (
+    <div className="min-h-screen bg-slate-100 p-4">
+      <Card className="max-w-md mx-auto">
+        <CardContent className="space-y-4">
+          <h1 className="text-xl font-semibold">Unit Converter</h1>
+
+          <select className="w-full p-2 border rounded" value={mode} onChange={e => setMode(e.target.value)}>
+            <option value="electric">Electric Energy</option>
+            <option value="gas">Natural Gas</option>
+            <option value="gallons">Gallons ↔ Acre‑Feet</option>
+            <option value="cytons">CY ↔ Tons</option>
+          </select>
+
+          <input
+            className="w-full border p-2 rounded"
+            type="number"
+            value={value}
+            onChange={e => setValue(Number(e.target.value))}
+          />
+
+          <div className="grid grid-cols-2 gap-2">
+            <select className="border p-2 rounded" value={from} onChange={e => setFrom(e.target.value)}>
+              {(mode === "electric" ? Object.keys(ELECTRIC_ENERGY)
+                : mode === "gas" ? Object.keys(GAS_BTUS)
+                : mode === "gallons" ? ["gallons", "acre-feet"]
+                : ["CY", "tons"]).map(u => (
+                  <option key={u}>{u}</option>
+                ))}
+            </select>
+
+            <select className="border p-2 rounded" value={to} onChange={e => setTo(e.target.value)}>
+              {(mode === "electric" ? Object.keys(ELECTRIC_ENERGY)
+                : mode === "gas" ? Object.keys(GAS_BTUS)
+                : mode === "gallons" ? ["gallons", "acre-feet"]
+                : ["CY", "tons"]).map(u => (
+                  <option key={u}>{u}</option>
+                ))}
+            </select>
+          </div>
+
+          <div className="text-center font-semibold">
+            Result: {result.toLocaleString(undefined, { maximumFractionDigits: 6 })}
+          </div>
+
+          {/* ✅ New calculator */}
+          <SimpleCalculator />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
