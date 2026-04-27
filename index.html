@@ -1,274 +1,32 @@
-import { useState, useMemo, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Unit Converter + Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-/* ======================
-   Constants
-====================== */
-
-// Electricity energy scalers (base: kWh)
-const ELECTRIC_ENERGY = { kWh: 1, MWh: 1e3, GWh: 1e6 };
-
-// Natural gas energy (BASE: BTU)
-const GAS_BTUS = {
-  BTU: 1,
-  kBTU: 1e3,
-  MMkBTU: 1e6,
-  therm: 100000,
-  cf: 1037,
-  ccf: 103700,
-  mcf: 1037000
-};
-
-const GALLONS_PER_ACRE_FOOT = 325851;
-
-const DEFAULT_DENSITIES_SHORT_TON_PER_CY = {
-  asphalt: 1.15,
-  concrete: 1.35,
-  soil: 1.25
-};
-
-const SHORT_TON_TO_METRIC_TON = 0.90718474;
-
-/* ======================
-   Simple Calculator
-====================== */
-
-function SimpleCalculator() {
-  const [display, setDisplay] = useState("0");
-  const [stored, setStored] = useState(null);
-
-  const inputNumber = (n) => {
-    setDisplay(display === "0" ? String(n) : display + n);
-  };
-
-  const decimal = () => {
-    if (!display.includes(".")) setDisplay(display + ".");
-  };
-
-  const clear = () => {
-    setDisplay("0");
-    setStored(null);
-  };
-
-  const operate = (op) => {
-    setStored({ value: Number(display), op });
-    setDisplay("0");
-  };
-
-  const equals = () => {
-    if (!stored) return;
-    const a = stored.value;
-    const b = Number(display);
-    let r = a;
-
-    if (stored.op === "+") r = a + b;
-    if (stored.op === "−") r = a - b;
-    if (stored.op === "×") r = a * b;
-    if (stored.op === "÷") r = b === 0 ? NaN : a / b;
-
-    setDisplay(String(r));
-    setStored(null);
-  };
-
-  return (
-    <div className="mt-8 border rounded-xl p-4 bg-white shadow">
-      <h2 className="text-lg font-semibold mb-2">Simple Calculator</h2>
-
-      <div className="border rounded p-2 mb-2 text-right font-mono text-lg">
-        {display}
-      </div>
-
-      <div className="grid grid-cols-4 gap-2">
-        {[7, 8, 9].map(n => (
-          <button key={n} onClick={() => inputNumber(n)} className="border p-2 rounded">{n}</button>
-        ))}
-        <button onClick={() => operate("÷")} className="border p-2 rounded">÷</button>
-
-        {[4, 5, 6].map(n => (
-          <button key={n} onClick={() => inputNumber(n)} className="border p-2 rounded">{n}</button>
-        ))}
-        <button onClick={() => operate("×")} className="border p-2 rounded">×</button>
-
-        {[1, 2, 3].map(n => (
-          <button key={n} onClick={() => inputNumber(n)} className="border p-2 rounded">{n}</button>
-        ))}
-        <button onClick={() => operate("−")} className="border p-2 rounded">−</button>
-
-        <button onClick={() => inputNumber(0)} className="border p-2 rounded col-span-2">0</button>
-        <button onClick={decimal} className="border p-2 rounded">.</button>
-        <button onClick={() => operate("+")} className="border p-2 rounded">+</button>
-
-        <button onClick={clear} className="border p-2 rounded col-span-2">C</button>
-        <button onClick={equals} className="border p-2 rounded col-span-2">=</button>
-      </div>
-    </div>
-  );
-}
-
-/* ======================
-   Unit Converter
-====================== */
-
-export default function UnitConverter() {
-  const [mode, setMode] = useState("electric");
-  const [value, setValue] = useState(1);
-  const [from, setFrom] = useState("kWh");
-  const [to, setTo] = useState("MWh");
-  const [material, setMaterial] = useState("asphalt");
-  const [densities, setDensities] = useState(DEFAULT_DENSITIES_SHORT_TON_PER_CY);
-  const [tonType, setTonType] = useState("short");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("unit-converter-project");
-    if (saved) {
-      try {
-        const s = JSON.parse(saved);
-        setMode(s.mode || "electric");
-        setValue(Number.isFinite(s.value) ? s.value : 1);
-        setFrom(s.from || "kWh");
-        setTo(s.to || "MWh");
-        setMaterial(s.material || "asphalt");
-        setDensities(s.densities || DEFAULT_DENSITIES_SHORT_TON_PER_CY);
-        setTonType(s.tonType || "short");
-      } catch {}
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f1f5f9;
+      padding: 1rem;
     }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(
-      "unit-converter-project",
-      JSON.stringify({ mode, value, from, to, material, densities, tonType })
-    );
-  }, [mode, value, from, to, material, densities, tonType]);
-
-  const result = useMemo(() => {
-    if (!Number.isFinite(value)) return 0;
-
-    if (mode === "electric")
-      return (value * ELECTRIC_ENERGY[from]) / ELECTRIC_ENERGY[to];
-
-    if (mode === "gas")
-      return (value * GAS_BTUS[from]) / GAS_BTUS[to];
-
-    if (mode === "gallons") {
-      if (from === "gallons") return value / GALLONS_PER_ACRE_FOOT;
-      return value * GALLONS_PER_ACRE_FOOT;
+    .card {
+      max-width: 420px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,.1);
     }
-
-    if (mode === "cytons") {
-      const d = densities[material];
-      const f = tonType === "metric" ? SHORT_TON_TO_METRIC_TON : 1;
-      if (from === "CY") return value * d * f;
-      return value / (d * f);
+    h1, h2 { margin-top: 0; }
+    select, input, button {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
     }
-
-    return value;
-  }, [mode, value, from, to, material, densities, tonType]);
-
-  return (
-    <div className="min-h-screen bg-slate-100 p-4">
-      <Card className="max-w-md mx-auto">
-        <CardContent className="space-y-4">
-          <h1 className="text-xl font-semibold">Unit Converter</h1>
-
-          <select className="w-full p-2 border rounded" value={mode} onChange={e => setMode(e.target.value)}>
-            <option value="electric">Electric Energy</option>
-            <option value="gas">Natural Gas</option>
-            <option value="gallons">Gallons ↔ Acre‑Feet</option>
-            <option value="cytons">CY ↔ Tons</option>
-          </select>
-
-          <input
-            className="w-full border p-2 rounded"
-            type="number"
-            value={value}
-            onChange={e => setValue(Number(e.target.value))}
-          />
-
-          <div className="grid grid-cols-2 gap-2">
-            <select className="border p-2 rounded" value={from} onChange={e => setFrom(e.target.value)}>
-              {(mode === "electric" ? Object.keys(ELECTRIC_ENERGY)
-                : mode === "gas" ? Object.keys(GAS_BTUS)
-                : mode === "gallons" ? ["gallons", "acre-feet"]
-                : ["CY", "tons"]).map(u => (
-                  <option key={u}>{u}</option>
-                ))}
-            </select>
-
-            <select className="border p-2 rounded" value={to} onChange={e => setTo(e.target.value)}>
-              {(mode === "electric" ? Object.keys(ELECTRIC_ENERGY)
-                : mode === "gas" ? Object.keys(GAS_BTUS)
-                : mode === "gallons" ? ["gallons", "acre-feet"]
-                : ["CY", "tons"]).map(u => (
-                  <option key={u}>{u}</option>
-                ))}
-            </select>
-          </div>
-
-          <div className="text-center font-semibold">
-            Result: {result.toLocaleString(undefined, { maximumFractionDigits: 6 })}
-          </div>
-
-   
-<hr style="margin:2rem 0" />
-
-<div style="max-width:320px;margin:auto;font-family:system-ui">
-  <h3>Calculator</h3>
-
-  <input id="calc-display" value="0" readonly
-    style="width:100%;text-align:right;font-size:1.2rem;padding:0.5rem;margin-bottom:0.5rem" />
-
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
-    <button onclick="press(7)">7</button>
-    <button onclick="press(8)">8</button>
-    <button onclick="press(9)">9</button>
-    <button onclick="op('/')">÷</button>
-
-    <button onclick="press(4)">4</button>
-    <button onclick="press(5)">5</button>
-    <button onclick="press(6)">6</button>
-    <button onclick="op('*')">×</button>
-
-    <button onclick="press(1)">1</button>
-    <button onclick="press(2)">2</button>
-    <button onclick="press(3)">3</button>
-    <button onclick="op('-')">−</button>
-
-    <button onclick="press(0)">0</button>
-    <button onclick="dot()">.</button>
-    <button onclick="calc()">=</button>
-    <button onclick="op('+')">+</button>
-
-    <button onclick="clearCalc()" style="grid-column:span 4">C</button>
-  </div>
-</div>
-
-<script>
-let expr = "";
-
-function press(n) {
-  expr += n;
-  update();
-}
-function dot() {
-  if (!expr.endsWith(".")) expr += ".";
-  update();
-}
-function op(o) {
-  expr += o;
-  update();
-}
-function calc() {
-  try { expr = String(eval(expr)); }
-  catch { expr = "0"; }
-  update();
-}
-function clearCalc() {
-  expr = "";
-  update();
-}
-function update() {
-  document.getElementById("calc-display").value = expr || "0";
-}
-</script>
+    .row {
+      display: flex;
+      gap: 0.5rem;
+    }
