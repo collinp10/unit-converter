@@ -217,3 +217,64 @@ export default function UnitConverter() {
     </div>
   );
 }
+<hr style="margin:2rem 0" />
+
+<div style="max-width:320px;margin:auto;font-family:system-ui">
+  <h3>Calculator</h3>
+
+  <input id="calc-display" value="0" readonly
+    style="width:100%;text-align:right;font-size:1.2rem;padding:0.5rem;margin-bottom:0.5rem" />
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+    <button onclick="press(7)">7</button>
+    <button onclick="press(8)">8</button>
+    <button onclick="press(9)">9</button>
+    <button onclick="op('/')">÷</button>
+
+    <button onclick="press(4)">4</button>
+    <button onclick="press(5)">5</button>
+    <button onclick="press(6)">6</button>
+    <button onclick="op('*')">×</button>
+
+    <button onclick="press(1)">1</button>
+    <button onclick="press(2)">2</button>
+    <button onclick="press(3)">3</button>
+    <button onclick="op('-')">−</button>
+
+    <button onclick="press(0)">0</button>
+    <button onclick="dot()">.</button>
+    <button onclick="calc()">=</button>
+    <button onclick="op('+')">+</button>
+
+    <button onclick="clearCalc()" style="grid-column:span 4">C</button>
+  </div>
+</div>
+
+<script>
+let expr = "";
+
+function press(n) {
+  expr += n;
+  update();
+}
+function dot() {
+  if (!expr.endsWith(".")) expr += ".";
+  update();
+}
+function op(o) {
+  expr += o;
+  update();
+}
+function calc() {
+  try { expr = String(eval(expr)); }
+  catch { expr = "0"; }
+  update();
+}
+function clearCalc() {
+  expr = "";
+  update();
+}
+function update() {
+  document.getElementById("calc-display").value = expr || "0";
+}
+</script>
