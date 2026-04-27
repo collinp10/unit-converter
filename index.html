@@ -1,53 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Unit Converter + Calculator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <title>Unit Converter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-store">
 
   <style>
     body {
       font-family: system-ui, -apple-system, sans-serif;
       background: #f1f5f9;
-      padding: 1rem;
+      padding: 20px;
     }
     .card {
-      max-width: 420px;
+      max-width: 460px;
       margin: auto;
-      background: white;
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,.1);
+      background: #fff;
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.12);
     }
-    h1, h2 { margin-top: 0; }
+    h1, h2 {
+      margin-top: 0;
+    }
     select, input, button {
       width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 0.5rem;
-      font-size: 1rem;
+      padding: 8px;
+      margin-bottom: 8px;
+      font-size: 14px;
     }
     .row {
       display: flex;
-      gap: 0.5rem;
+      gap: 8px;
     }
-    .row > * { flex: 1 }
+    .row > * { flex: 1; }
     .result {
-      text-align: center;
       font-weight: bold;
-      margin: 0.5rem 0;
-    }
-    .calc {
-      margin-top: 1.5rem;
-      border-top: 1px solid #ddd;
-      padding-top: 1rem;
+      text-align: center;
+      margin: 8px 0;
     }
     .calc-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 4px;
-    }
-    .calc-grid button {
-      font-size: 1.1rem;
     }
   </style>
 </head>
@@ -55,80 +50,138 @@
 <body>
 
 <div class="card">
-
   <h1>Unit Converter</h1>
 
+  <!-- Mode -->
   <select id="mode" onchange="updateUnits()">
-    <option value="electric">Electric Energy</option>
-    <option value="gas">Natural Gas</option>
-    <option value="gallons">Gallons ↔ Acre‑Feet</option>
+    <option value="electric">Electric energy</option>
+    <option value="gas">Natural gas energy</option>
+    <option value="gallons">Gallons ↔ Acre‑feet</option>
+    <option value="cytons">Cubic yards ↔ Tons</option>
   </select>
 
-  <input id="value" type="number" value="1" oninput="convert()" />
+  <!-- Input -->
+  <input id="value" type="number" value="1" oninput="convert()">
 
+  <!-- Units -->
   <div class="row">
     <select id="from" onchange="convert()"></select>
     <select id="to" onchange="convert()"></select>
   </div>
 
+  <!-- CY ↔ Tons options -->
+  <div id="cyOptions" style="display:none">
+    <label>Material</label>
+    <select id="material" onchange="convert()">
+      <option value="asphalt">Asphalt</option>
+      <option value="concrete">Concrete</option>
+      <option value="soil">Soil</option>
+    </select>
+
+    <label>Ton type</label>
+    <select id="tonType" onchange="convert()">
+      <option value="short">Short tons</option>
+      <option value="metric">Metric tons</option>
+    </select>
+  </div>
+
+  <!-- Result -->
   <div class="result">
     Result: <span id="result">—</span>
   </div>
 
+  <hr>
+
   <!-- ================= Calculator ================= -->
 
-  <div class="calc">
-    <h2>Calculator</h2>
+  <h2>Calculator</h2>
 
-    <input id="calcDisplay" value="0" readonly style="text-align:right;font-size:1.2rem" />
+  <input id="calcDisplay" value="0" readonly style="text-align:right;font-size:1.1rem">
 
-    <div class="calc-grid">
-      <button onclick="pressCalc(7)">7</button>
-      <button onclick="pressCalc(8)">8</button>
-      <button onclick="pressCalc(9)">9</button>
-      <button onclick="pressOp('/')">÷</button>
+  <div class="calc-grid">
+    <button onclick="pressCalc(7)">7</button>
+    <button onclick="pressCalc(8)">8</button>
+    <button onclick="pressCalc(9)">9</button>
+    <button onclick="pressOp('/')">÷</button>
 
-      <button onclick="pressCalc(4)">4</button>
-      <button onclick="pressCalc(5)">5</button>
-      <button onclick="pressCalc(6)">6</button>
-      <button onclick="pressOp('*')">×</button>
+    <button onclick="pressCalc(4)">4</button>
+    <button onclick="pressCalc(5)">5</button>
+    <button onclick="pressCalc(6)">6</button>
+    <button onclick="pressOp('*')">×</button>
 
-      <button onclick="pressCalc(1)">1</button>
-      <button onclick="pressCalc(2)">2</button>
-      <button onclick="pressCalc(3)">3</button>
-      <button onclick="pressOp('-')">−</button>
+    <button onclick="pressCalc(1)">1</button>
+    <button onclick="pressCalc(2)">2</button>
+    <button onclick="pressCalc(3)">3</button>
+    <button onclick="pressOp('-')">−</button>
 
-      <button onclick="pressCalc(0)" style="grid-column:span 2">0</button>
-      <button onclick="pressDot()">.</button>
-      <button onclick="pressOp('+')">+</button>
+    <button onclick="pressCalc(0)" style="grid-column:span 2">0</button>
+    <button onclick="pressDot()">.</button>
+    <button onclick="pressOp('+')">+</button>
 
-      <button onclick="clearCalc()" style="grid-column:span 2">C</button>
-      <button onclick="calculate()" style="grid-column:span 2">=</button>
-    </div>
+    <button onclick="clearCalc()" style="grid-column:span 2">C</button>
+    <button onclick="calculate()" style="grid-column:span 2">=</button>
   </div>
 </div>
 
 <script>
-/* ================= UNIT CONVERTER ================= */
+/* ================= DATA ================= */
 
+// Electric energy (kWh base)
 const ELECTRIC = { kWh:1, MWh:1e3, GWh:1e6 };
-const GAS = { BTU:1, therm:100000, kBTU:1e3, MMkBTU:1e6 };
+
+// Natural gas (BTU base)
+const GAS = {
+  BTU: 1,
+  kBTU: 1e3,
+  MMkBTU: 1e6,
+  therm: 100000,
+  cf: 1037,
+  ccf: 1037 * 100,
+  mcf: 1037 * 1000,
+  MMcf: 1037 * 1e6
+};
+
 const GAL_PER_AF = 325851;
 
+// Short tons per CY
+const DENSITY = {
+  asphalt: 1.15,
+  concrete: 1.35,
+  soil: 1.25
+};
+
+const SHORT_TO_METRIC = 0.90718474;
+
+/* ================= CONVERTER ================= */
+
+const modeEl = document.getElementById("mode");
+const valueEl = document.getElementById("value");
+const fromEl = document.getElementById("from");
+const toEl = document.getElementById("to");
+const resultEl = document.getElementById("result");
+const cyOptions = document.getElementById("cyOptions");
+const materialEl = document.getElementById("material");
+const tonTypeEl = document.getElementById("tonType");
+
 function updateUnits() {
-  const mode = modeEl.value;
   fromEl.innerHTML = "";
   toEl.innerHTML = "";
+  cyOptions.style.display = "none";
 
   let units = [];
+  const mode = modeEl.value;
 
   if (mode === "electric") units = Object.keys(ELECTRIC);
   if (mode === "gas") units = Object.keys(GAS);
   if (mode === "gallons") units = ["gallons","acre-feet"];
+  if (mode === "cytons") {
+    units = ["CY","tons"];
+    cyOptions.style.display = "block";
+  }
 
   units.forEach(u => {
-    fromEl.add(new Option(u, u));
-    toEl.add(new Option(u, u));
+    fromEl.add(new Option(u,u));
+    toEl.add(new Option(u,u));
   });
 
   convert();
@@ -136,35 +189,32 @@ function updateUnits() {
 
 function convert() {
   const v = parseFloat(valueEl.value);
-  const m = modeEl.value;
-  const f = fromEl.value;
-  const t = toEl.value;
-
   if (!isFinite(v)) return;
 
+  const f = fromEl.value;
+  const t = toEl.value;
+  const mode = modeEl.value;
   let r = v;
 
-  if (m === "electric") r = v * ELECTRIC[f] / ELECTRIC[t];
-  if (m === "gas") r = v * GAS[f] / GAS[t];
-  if (m === "gallons") {
-    if (f === "gallons") r = v / GAL_PER_AF;
-    else r = v * GAL_PER_AF;
+  if (mode === "electric") r = v * ELECTRIC[f] / ELECTRIC[t];
+  if (mode === "gas") r = v * GAS[f] / GAS[t];
+  if (mode === "gallons") r = f === "gallons" ? v / GAL_PER_AF : v * GAL_PER_AF;
+  if (mode === "cytons") {
+    const d = DENSITY[materialEl.value];
+    const tf = tonTypeEl.value === "metric" ? SHORT_TO_METRIC : 1;
+    if (f === "CY") r = v * d * tf;
+    else r = v / (d * tf);
   }
 
   resultEl.textContent = r.toLocaleString(undefined,{maximumFractionDigits:6});
 }
-
-const modeEl   = document.getElementById("mode");
-const valueEl  = document.getElementById("value");
-const fromEl   = document.getElementById("from");
-const toEl     = document.getElementById("to");
-const resultEl = document.getElementById("result");
 
 updateUnits();
 
 /* ================= CALCULATOR ================= */
 
 let expr = "";
+const calcDisplay = document.getElementById("calcDisplay");
 
 function pressCalc(n){ expr+=n; updateCalc(); }
 function pressDot(){ if(!expr.endsWith(".")) expr+="."; updateCalc(); }
@@ -180,8 +230,6 @@ function calculate(){
 function updateCalc(){
   calcDisplay.value = expr || "0";
 }
-
-const calcDisplay = document.getElementById("calcDisplay");
 </script>
 
 </body>
