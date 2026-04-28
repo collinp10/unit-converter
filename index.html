@@ -96,7 +96,13 @@
 
   <h2>Calculator</h2>
 
-  <input id="calcDisplay" value="0" readonly style="text-align:right;font-size:1.1rem">
+  <!-- ✅ NOW TYPEABLE -->
+  <input
+    id="calcDisplay"
+    value="0"
+    style="text-align:right;font-size:1.1rem"
+    oninput="expr=this.value"
+  >
 
   <div class="calc-grid">
     <button onclick="pressCalc(7)">7</button>
@@ -135,10 +141,12 @@ const GAS = {
   kBTU: 1e3,
   MMkBTU: 1e6,
   therm: 100000,
+  MMTherms: 100000 * 1e6,          // ✅ Millions of therms
   cf: 1037,
   ccf: 1037 * 100,
   mcf: 1037 * 1000,
-  MMcf: 1037 * 1e6
+  MMcf: 1037 * 1e6,
+  Bcf: 1037 * 1e9                 // ✅ Billion cubic feet
 };
 
 const GAL_PER_AF = 325851;
@@ -202,8 +210,7 @@ function convert() {
   if (mode === "cytons") {
     const d = DENSITY[materialEl.value];
     const tf = tonTypeEl.value === "metric" ? SHORT_TO_METRIC : 1;
-    if (f === "CY") r = v * d * tf;
-    else r = v / (d * tf);
+    r = f === "CY" ? v * d * tf : v / (d * tf);
   }
 
   resultEl.textContent = r.toLocaleString(undefined,{maximumFractionDigits:6});
@@ -216,14 +223,14 @@ updateUnits();
 let expr = "";
 const calcDisplay = document.getElementById("calcDisplay");
 
-function pressCalc(n){ expr+=n; updateCalc(); }
-function pressDot(){ if(!expr.endsWith(".")) expr+="."; updateCalc(); }
-function pressOp(o){ expr+=o; updateCalc(); }
-function clearCalc(){ expr=""; updateCalc(); }
+function pressCalc(n){ expr += n; updateCalc(); }
+function pressDot(){ if(!expr.endsWith(".")) expr += "."; updateCalc(); }
+function pressOp(o){ expr += o; updateCalc(); }
+function clearCalc(){ expr = ""; updateCalc(); }
 
 function calculate(){
-  try { expr=String(eval(expr)); }
-  catch { expr="0"; }
+  try { expr = String(eval(expr)); }
+  catch { expr = "0"; }
   updateCalc();
 }
 
