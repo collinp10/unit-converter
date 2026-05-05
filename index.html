@@ -96,7 +96,7 @@
 
   <h2>Calculator</h2>
 
-  <!-- ✅ NOW TYPEABLE -->
+  <!-- Typable calculator display -->
   <input
     id="calcDisplay"
     value="0"
@@ -133,20 +133,24 @@
 /* ================= DATA ================= */
 
 // Electric energy (kWh base)
-const ELECTRIC = { kWh:1, MWh:1e3, GWh:1e6 };
+const ELECTRIC = {
+  kWh: 1,
+  MWh: 1e3,
+  GWh: 1e6
+};
 
-// Natural gas (BTU base)
+// Natural gas energy (BTU base)
 const GAS = {
   BTU: 1,
   kBTU: 1e3,
-  MMkBTU: 1e6,
+  MMkBTU: 1e9,                 // ✅ FIXED: 1 MMkBTU = 1 billion BTU
   therm: 100000,
-  MMTherms: 100000 * 1e6,          // ✅ Millions of therms
+  MMTherms: 100000 * 1e6,      // = 1e11 BTU
   cf: 1037,
   ccf: 1037 * 100,
   mcf: 1037 * 1000,
   MMcf: 1037 * 1e6,
-  Bcf: 1037 * 1e9                 // ✅ Billion cubic feet
+  Bcf: 1037 * 1e9
 };
 
 const GAL_PER_AF = 325851;
@@ -213,7 +217,8 @@ function convert() {
     r = f === "CY" ? v * d * tf : v / (d * tf);
   }
 
-  resultEl.textContent = r.toLocaleString(undefined,{maximumFractionDigits:6});
+  resultEl.textContent =
+    r.toLocaleString(undefined,{maximumFractionDigits:6});
 }
 
 updateUnits();
